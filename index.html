@@ -9,23 +9,38 @@
 body{background:#111315;display:flex;align-items:flex-start;justify-content:center;min-height:100vh;padding:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 #ops{background:#181a1d;border-radius:12px;border:0.5px solid #2a2a2a;overflow:hidden;position:relative;width:100%;max-width:1100px}
 #hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:0.5px solid #242628;background:#181a1d}
-#hdr-title{font-size:11px;font-weight:500;letter-spacing:.1em;color:#555;text-transform:uppercase}
+#hdr-title{font-size:11px;font-weight:500;letter-spacing:.1em;color:#4a7a4a;text-transform:uppercase}
 #hdr-right{display:flex;align-items:center;gap:8px}
 .live-dot{width:5px;height:5px;border-radius:50%;background:#3d7a3d;animation:blink 2s infinite;flex-shrink:0}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-#live-lbl{font-size:10px;color:#555}
+#live-lbl{font-size:10px;color:#4a7a4a}
 #map-area{position:relative;width:100%}
 #map-svg{display:block;width:100%;height:auto}
-#panel-wrap{position:absolute;top:0;right:0;bottom:0;width:0;overflow:hidden;transition:width .3s cubic-bezier(.4,0,.2,1);background:#13151a;border-left:0.5px solid #2a2a2a;display:flex;flex-direction:column}
-#panel-wrap.open{width:min(300px,85vw)}
+
+/* event panel — fixed to right edge always */
+#panel-wrap{
+  position:absolute;top:0;right:0;bottom:0;
+  width:0;overflow:hidden;
+  transition:width .3s cubic-bezier(.4,0,.2,1);
+  background:#13151a;border-left:0.5px solid #2a2a2a;
+  display:flex;flex-direction:column;z-index:10;
+}
+#panel-wrap.open{width:300px}
+
 #ph{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;border-bottom:0.5px solid #2a2a2a;flex-shrink:0}
 #ph-name{font-size:14px;font-weight:500;color:#ffffff}
 #ph-close{background:none;border:1px solid #888;cursor:pointer;padding:5px 9px;border-radius:4px;color:#ffffff;font-size:15px;font-weight:bold;line-height:1}
 #ph-close:hover{background:#2a2d33}
 #pb{flex:1;overflow-y:auto;padding:12px 14px;-webkit-overflow-scrolling:touch}
 .sec-lbl{font-size:9px;font-weight:500;letter-spacing:.1em;color:#555;text-transform:uppercase;margin:0 0 6px}
-.ecard{background:#1c1f24;border:0.5px solid #2a2a2a;border-radius:6px;padding:9px 11px;margin-bottom:7px}
-.ecard-title{font-size:12px;font-weight:500;color:#c8c8c8;margin-bottom:3px}
+.ecard{background:#1c1f24;border:0.5px solid #2a2a2a;border-radius:6px;padding:9px 11px;margin-bottom:7px;cursor:pointer;transition:border-color .15s,background .15s}
+.ecard:hover{border-color:#444;background:#20232a}
+.ecard.active{border-color:#555;background:#22252c}
+.ecard-title{font-size:12px;font-weight:500;color:#c8c8c8;margin-bottom:3px;display:flex;align-items:center;justify-content:space-between}
+.ecard-title-text{flex:1}
+.ecard-arrow{font-size:10px;color:#444;transition:color .15s}
+.ecard:hover .ecard-arrow{color:#888}
+.ecard.active .ecard-arrow{color:#aaa}
 .ecard-desc{font-size:11px;color:#555;line-height:1.5}
 .etag{display:inline-block;font-size:9px;padding:2px 6px;border-radius:3px;margin-top:5px;font-weight:500;letter-spacing:.04em}
 .t-exec{background:#1a2a1a;color:#5a9a5a}
@@ -34,7 +49,30 @@ body{background:#111315;display:flex;align-items:flex-start;justify-content:cent
 .t-fp{background:#2e221a;color:#c8925a}
 .sec-block{margin-bottom:14px}
 #pf{padding:10px 14px;border-top:0.5px solid #2a2a2a;font-size:10px;color:#3a3a3a;font-style:italic;flex-shrink:0}
-#loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#181a1d;z-index:5}
+
+/* detail panel — slides in to the LEFT of the event panel */
+#detail-wrap{
+  position:absolute;top:0;bottom:0;
+  right:0;
+  width:0;overflow:hidden;
+  transition:width .3s cubic-bezier(.4,0,.2,1), right .3s cubic-bezier(.4,0,.2,1);
+  background:#0f1114;border-left:0.5px solid #2a2a2a;
+  display:flex;flex-direction:column;z-index:9;
+}
+#detail-wrap.open{width:280px;right:300px}
+
+#dh{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;border-bottom:0.5px solid #2a2a2a;flex-shrink:0}
+#dh-title{font-size:13px;font-weight:500;color:#ffffff;flex:1;margin-right:8px}
+#dh-close{background:none;border:1px solid #888;cursor:pointer;padding:5px 9px;border-radius:4px;color:#ffffff;font-size:15px;font-weight:bold;line-height:1}
+#dh-close:hover{background:#1a1d22}
+#db{flex:1;overflow-y:auto;padding:14px;-webkit-overflow-scrolling:touch}
+.detail-tag{display:inline-block;font-size:9px;padding:2px 6px;border-radius:3px;margin-bottom:12px;font-weight:500;letter-spacing:.04em}
+.bullet-list{list-style:none;padding:0}
+.bullet-list li{display:flex;gap:8px;padding:7px 0;border-bottom:0.5px solid #1e2126;font-size:11px;color:#888;line-height:1.5}
+.bullet-list li:last-child{border-bottom:none}
+.bullet-list li::before{content:"—";color:#444;flex-shrink:0;margin-top:1px}
+
+#loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#181a1d;z-index:20}
 #loading-text{font-size:12px;color:#444;letter-spacing:.05em}
 #retry-btn{display:none;background:#1c1f24;border:0.5px solid #444;color:#888;padding:7px 14px;border-radius:6px;font-size:11px;cursor:pointer}
 .hs{cursor:pointer}
@@ -50,7 +88,7 @@ body{background:#111315;display:flex;align-items:flex-start;justify-content:cent
 <div id="ops">
   <div id="hdr">
     <span id="hdr-title">Global political overview</span>
-    <div id="hdr-right"><span class="live-dot"></span><span id="live-lbl">4 active regions</span></div>
+    <div id="hdr-right"><span class="live-dot"></span><span id="live-lbl">8 active regions</span></div>
   </div>
   <div id="map-area">
     <svg id="map-svg" viewBox="0 0 960 500" xmlns="http://www.w3.org/2000/svg">
@@ -58,15 +96,26 @@ body{background:#111315;display:flex;align-items:flex-start;justify-content:cent
     </svg>
     <div id="loading">
       <span id="loading-text">Loading map…</span>
-      <button id="retry-btn" onclick="loadMap()">Retry</button>
+      <button id="retry-btn" onclick="drawMap()">Retry</button>
     </div>
+
+    <!-- Detail panel (behind, slides left of event panel) -->
+    <div id="detail-wrap">
+      <div id="dh">
+        <span id="dh-title">—</span>
+        <button id="dh-close" onclick="closeDetail()">&#x2715;</button>
+      </div>
+      <div id="db"></div>
+    </div>
+
+    <!-- Event panel (always on right edge) -->
     <div id="panel-wrap">
       <div id="ph">
         <span id="ph-name">—</span>
-        <button id="ph-close" onclick="closePanel()">&#x2715;</button>
+        <button id="ph-close" onclick="closeAll()">&#x2715;</button>
       </div>
       <div id="pb"></div>
-      <div id="pf">Fill in events closer to your presentation date.</div>
+      <div id="pf">Click an event card for more detail.</div>
     </div>
   </div>
 </div>
@@ -77,66 +126,115 @@ body{background:#111315;display:flex;align-items:flex-start;justify-content:cent
 const PANEL_DATA={
   usa:{name:"United States",sections:[
     {label:"Executive",events:[
-      {title:"[Event title]",desc:"Presidential action, executive order, or policy decision.",tag:"t-exec",tl:"Executive"},
-      {title:"[Event title]",desc:"Second development — war powers, veto, cabinet decision.",tag:"t-exec",tl:"Executive"}
+      {id:"usa-e1",title:"[Event title]",desc:"Presidential action, executive order, or domestic policy decision.",tag:"t-exec",tl:"Executive power",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]},
+      {id:"usa-e2",title:"[Event title]",desc:"Second development — war powers, veto, or cabinet decision and its domestic impact.",tag:"t-exec",tl:"Public perception",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]}
     ]},
     {label:"Congress",events:[
-      {title:"[Event title]",desc:"Key bill, vote, or congressional oversight action.",tag:"t-leg",tl:"Legislative"}
+      {id:"usa-e3",title:"[Event title]",desc:"Key bill, vote, or congressional oversight action and what it means for US politics.",tag:"t-leg",tl:"Congressional response",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]}
     ]},
     {label:"Supreme Court",events:[
-      {title:"[Event title]",desc:"Landmark ruling or pending case relevant to US politics.",tag:"t-court",tl:"Supreme Court"}
+      {id:"usa-e4",title:"[Event title]",desc:"Landmark ruling or pending case and its impact on US law and politics.",tag:"t-court",tl:"Judicial impact",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]}
     ]}
   ]},
   iran:{name:"Iran",sections:[
-    {label:"US–Iran relations",events:[
-      {title:"[Event title]",desc:"Key diplomatic or military development between US and Iran.",tag:"t-fp",tl:"Foreign policy"},
-      {title:"[Event title]",desc:"Sanctions, nuclear talks, or presidential response.",tag:"t-exec",tl:"Executive"}
+    {label:"Impact on US foreign policy",events:[
+      {id:"iran-e1",title:"[Event title]",desc:"How developments with Iran have shaped US foreign policy decisions.",tag:"t-fp",tl:"Foreign policy shift",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]},
+      {id:"iran-e2",title:"[Event title]",desc:"US executive response — sanctions, nuclear deal stance, presidential statements.",tag:"t-exec",tl:"Executive response",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]}
     ]},
-    {label:"Congressional angle",events:[
-      {title:"[Event title]",desc:"Congressional response — authorisation debates, War Powers Resolution.",tag:"t-leg",tl:"Legislative"}
+    {label:"Impact on US Congress",events:[
+      {id:"iran-e3",title:"[Event title]",desc:"How Congress has responded — authorisation debates, War Powers Resolution, oversight.",tag:"t-leg",tl:"Congressional pressure",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]}
     ]}
   ]},
   israel:{name:"Israel",sections:[
-    {label:"US foreign policy",events:[
-      {title:"[Event title]",desc:"US policy position — aid packages, UN veto use, diplomatic stance.",tag:"t-fp",tl:"Foreign policy"},
-      {title:"[Event title]",desc:"Presidential statements, troop posture, arms supply.",tag:"t-exec",tl:"Executive"}
+    {label:"Impact on US foreign policy",events:[
+      {id:"isr-e1",title:"[Event title]",desc:"How the Israel situation has driven US foreign policy — aid, UN vetoes, diplomatic stance.",tag:"t-fp",tl:"Foreign policy shift",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]},
+      {id:"isr-e2",title:"[Event title]",desc:"US executive response — presidential statements, arms supply decisions, troop posture.",tag:"t-exec",tl:"Executive response",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]}
     ]},
-    {label:"Domestic politics link",events:[
-      {title:"[Event title]",desc:"Domestic debate — party splits, protest movements, election impact.",tag:"t-leg",tl:"Legislative"}
+    {label:"Impact on US domestic politics",events:[
+      {id:"isr-e3",title:"[Event title]",desc:"How the conflict has affected US domestic politics — party splits, protests, electoral impact.",tag:"t-leg",tl:"Public perception",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]}
     ]}
   ]},
   china:{name:"China",sections:[
-    {label:"Trade and tariffs",events:[
-      {title:"[Event title]",desc:"Latest tariff action or trade policy — executive orders, retaliatory measures.",tag:"t-exec",tl:"Executive"},
-      {title:"[Event title]",desc:"WTO challenges, supply chain shifts, tech restrictions.",tag:"t-fp",tl:"Foreign policy"}
+    {label:"Impact on US trade policy",events:[
+      {id:"chn-e1",title:"[Event title]",desc:"How US-China tensions have driven trade policy — tariffs, executive orders, retaliatory measures.",tag:"t-exec",tl:"Economic impact",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]},
+      {id:"chn-e2",title:"[Event title]",desc:"Broader US economic impact — supply chain shifts, tech restrictions, WTO challenges.",tag:"t-fp",tl:"Foreign policy shift",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]}
     ]},
-    {label:"Taiwan and security",events:[
-      {title:"[Event title]",desc:"Taiwan Strait developments — military posture, arms sales, Taiwan legislation.",tag:"t-leg",tl:"Legislative"}
+    {label:"Impact on US security policy",events:[
+      {id:"chn-e3",title:"[Event title]",desc:"How Taiwan tensions have shaped US military posture, arms sales, and congressional legislation.",tag:"t-leg",tl:"Security impact",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]}
     ]},
-    {label:"Congress and courts",events:[
-      {title:"[Event title]",desc:"Congressional legislation or court ruling tied to US–China relations.",tag:"t-court",tl:"Supreme Court"}
+    {label:"Impact on US Congress and courts",events:[
+      {id:"chn-e4",title:"[Event title]",desc:"Congressional legislation or Supreme Court rulings shaped by US-China relations.",tag:"t-court",tl:"Judicial impact",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]}
+    ]}
+  ]},
+  venezuela:{name:"Venezuela",sections:[
+    {label:"Impact on US foreign policy",events:[
+      {id:"ven-e1",title:"[Event title]",desc:"How Venezuela has driven US foreign policy — sanctions, oil strategy, regional diplomacy.",tag:"t-fp",tl:"Foreign policy shift",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]},
+      {id:"ven-e2",title:"[Event title]",desc:"US executive response — presidential statements, tariffs, recognition of opposition.",tag:"t-exec",tl:"Executive response",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]}
+    ]},
+    {label:"Impact on US Congress",events:[
+      {id:"ven-e3",title:"[Event title]",desc:"Congressional response — sanctions legislation, oversight hearings, foreign aid debates.",tag:"t-leg",tl:"Congressional pressure",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]}
+    ]}
+  ]},
+  greenland:{name:"Greenland",sections:[
+    {label:"Impact on US foreign policy",events:[
+      {id:"grn-e1",title:"[Event title]",desc:"How Trump's push to acquire Greenland has affected US relations with Denmark and NATO allies.",tag:"t-fp",tl:"Alliance impact",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]},
+      {id:"grn-e2",title:"[Event title]",desc:"Why Greenland matters to the US — fossil fuels, Arctic routes, rare earth minerals, military bases.",tag:"t-exec",tl:"Strategic interest",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]}
+    ]},
+    {label:"Impact on US domestic politics",events:[
+      {id:"grn-e3",title:"[Event title]",desc:"How Greenland has featured in US political debate — Congress, public opinion, constitutional questions.",tag:"t-leg",tl:"Public perception",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]}
+    ]}
+  ]},
+  russia:{name:"Russia",sections:[
+    {label:"Impact on US foreign policy",events:[
+      {id:"rus-e1",title:"[Event title]",desc:"How the Russia-Ukraine war has shaped US foreign policy — aid, NATO commitments, Trump's stance.",tag:"t-fp",tl:"Foreign policy shift",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]},
+      {id:"rus-e2",title:"[Event title]",desc:"US executive response to Russia — sanctions decisions, ceasefire negotiations, presidential statements.",tag:"t-exec",tl:"Executive response",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]}
+    ]},
+    {label:"Impact on US Congress",events:[
+      {id:"rus-e3",title:"[Event title]",desc:"Congressional debate on Russia — Ukraine funding bills, NATO Article 5, oversight of executive power.",tag:"t-leg",tl:"Congressional pressure",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]}
+    ]}
+  ]},
+  mexico:{name:"Mexico",sections:[
+    {label:"Impact on US immigration policy",events:[
+      {id:"mex-e1",title:"[Event title]",desc:"How the US-Mexico border has driven US immigration policy — executive orders, deportations, wall.",tag:"t-exec",tl:"Executive response",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]},
+      {id:"mex-e2",title:"[Event title]",desc:"Congressional response to border crisis — funding battles, legislation, oversight of executive.",tag:"t-leg",tl:"Congressional pressure",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]}
+    ]},
+    {label:"Impact on US trade policy",events:[
+      {id:"mex-e3",title:"[Event title]",desc:"How US-Mexico trade tensions have affected US policy — USMCA, tariff threats, nearshoring.",tag:"t-fp",tl:"Economic impact",bullets:["[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]","[Bullet point — key detail]"]}
     ]}
   ]}
 };
 
 const HOTSPOTS=[
-  {id:"usa",   lon:-98,  lat:38,   label:"USA",   labelDy:-15},
-  {id:"iran",  lon:53,   lat:32,   label:"Iran",  labelDy:-15},
-  {id:"israel",lon:35,   lat:31.5, label:"Israel",labelDy:23},
-  {id:"china", lon:104,  lat:35,   label:"China", labelDy:-15}
+  {id:"usa",       lon:-98,  lat:38,   label:"USA",       labelDy:-15},
+  {id:"iran",      lon:53,   lat:32,   label:"Iran",      labelDy:-15},
+  {id:"israel",    lon:35,   lat:31.5, label:"Israel",    labelDy:23},
+  {id:"china",     lon:104,  lat:35,   label:"China",     labelDy:-15},
+  {id:"venezuela", lon:-66,  lat:7,    label:"Venezuela", labelDy:-15},
+  {id:"greenland", lon:-42,  lat:72,   label:"Greenland", labelDy:-15},
+  {id:"russia",    lon:90,   lat:62,   label:"Russia",    labelDy:-15},
+  {id:"mexico",    lon:-102, lat:24,   label:"Mexico",    labelDy:23}
 ];
-const HIGHLIGHT={"840":true,"364":true,"376":true,"156":true};
-let activeKey=null;
+const HIGHLIGHT={"840":true,"364":true,"376":true,"156":true,"862":true,"304":true,"643":true,"484":true};
+let activeKey=null, activeEventId=null;
 
-function togglePanel(key){activeKey===key?closePanel():openPanel(key);}
+const EVENT_MAP={};
+Object.values(PANEL_DATA).forEach(c=>c.sections.forEach(s=>s.events.forEach(e=>EVENT_MAP[e.id]=e)));
+
+function togglePanel(key){activeKey===key?closeAll():openPanel(key);}
+
 function openPanel(key){
+  closeDetail();
   const d=PANEL_DATA[key];
   document.getElementById("ph-name").textContent=d.name;
   let html="";
   d.sections.forEach(s=>{
     html+=`<div class="sec-block"><div class="sec-lbl">${s.label}</div>`;
     s.events.forEach(e=>{
-      html+=`<div class="ecard"><div class="ecard-title">${e.title}</div><div class="ecard-desc">${e.desc}</div><span class="etag ${e.tag}">${e.tl}</span></div>`;
+      html+=`<div class="ecard" id="card-${e.id}" onclick="openDetail('${e.id}')">
+        <div class="ecard-title"><span class="ecard-title-text">${e.title}</span><span class="ecard-arrow">◀</span></div>
+        <div class="ecard-desc">${e.desc}</div>
+        <span class="etag ${e.tag}">${e.tl}</span>
+      </div>`;
     });
     html+=`</div>`;
   });
@@ -146,7 +244,30 @@ function openPanel(key){
   document.getElementById("hs-"+key).classList.add("active");
   activeKey=key;
 }
-function closePanel(){
+
+function openDetail(eid){
+  if(activeEventId===eid){closeDetail();return;}
+  const e=EVENT_MAP[eid];
+  document.getElementById("dh-title").textContent=e.title;
+  const bulletsHtml=e.bullets.map(b=>`<li>${b}</li>`).join("");
+  document.getElementById("db").innerHTML=`
+    <span class="etag ${e.tag} detail-tag">${e.tl}</span>
+    <ul class="bullet-list">${bulletsHtml}</ul>`;
+  document.querySelectorAll(".ecard").forEach(c=>c.classList.remove("active"));
+  const card=document.getElementById("card-"+eid);
+  if(card)card.classList.add("active");
+  document.getElementById("detail-wrap").classList.add("open");
+  activeEventId=eid;
+}
+
+function closeDetail(){
+  document.getElementById("detail-wrap").classList.remove("open");
+  document.querySelectorAll(".ecard").forEach(c=>c.classList.remove("active"));
+  activeEventId=null;
+}
+
+function closeAll(){
+  closeDetail();
   document.getElementById("panel-wrap").classList.remove("open");
   document.querySelectorAll(".hs").forEach(h=>h.classList.remove("active"));
   activeKey=null;
@@ -181,8 +302,9 @@ function drawMap(){
         .attr("letter-spacing","0.08em").attr("pointer-events","none").text(h.label);
     });
     svg.append("text").attr("x",W/2).attr("y",H-8)
-      .attr("text-anchor","middle").attr("font-size","9").attr("fill","#28282e")
-      .attr("font-family","sans-serif").text("Click a region to open briefing panel · click again to close");
+      .attr("text-anchor","middle").attr("font-size","9").attr("fill","#4a7a4a")
+      .attr("letter-spacing","0.08em").attr("font-family","sans-serif")
+      .text("SELECT A REGION TO OPEN BRIEFING PANEL   ·   CLICK AGAIN TO CLOSE");
     document.getElementById("loading").style.display="none";
   }).catch(()=>{
     document.getElementById("loading-text").textContent="Map failed to load — check internet and retry.";
@@ -190,11 +312,9 @@ function drawMap(){
   });
 }
 
-// Wait for D3 and TopoJSON to load then draw
-window.addEventListener("load", ()=>{
-  if(window.d3 && window.topojson){
-    drawMap();
-  } else {
+window.addEventListener("load",()=>{
+  if(window.d3&&window.topojson){drawMap();}
+  else{
     document.getElementById("loading-text").textContent="Map failed to load — check internet and retry.";
     document.getElementById("retry-btn").style.display="block";
   }
