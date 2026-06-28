@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>USA Politics presentation_GDJE</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#111315;display:flex;align-items:flex-start;justify-content:center;min-height:100vh;padding:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+#ops{background:#181a1d;border-radius:12px;border:0.5px solid #2a2a2a;overflow:hidden;position:relative;width:100%;max-width:1100px}
+#hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:0.5px solid #242628;background:#181a1d}
+#hdr-title{font-size:11px;font-weight:500;letter-spacing:.1em;color:#555;text-transform:uppercase}
+#hdr-right{display:flex;align-items:center;gap:8px}
+.live-dot{width:5px;height:5px;border-radius:50%;background:#3d7a3d;animation:blink 2s infinite;flex-shrink:0}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+#live-lbl{font-size:10px;color:#555}
+#map-area{position:relative;width:100%}
+#map-svg{display:block;width:100%;height:auto}
+#panel-wrap{position:absolute;top:0;right:0;bottom:0;width:0;overflow:hidden;transition:width .3s cubic-bezier(.4,0,.2,1);background:#13151a;border-left:0.5px solid #2a2a2a;display:flex;flex-direction:column}
+#panel-wrap.open{width:min(300px,85vw)}
+#ph{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;border-bottom:0.5px solid #2a2a2a;flex-shrink:0}
+#ph-name{font-size:14px;font-weight:500;color:#ffffff}
+#ph-close{background:none;border:1px solid #888;cursor:pointer;padding:5px 9px;border-radius:4px;color:#ffffff;font-size:15px;font-weight:bold;line-height:1}
+#ph-close:hover{background:#2a2d33}
+#pb{flex:1;overflow-y:auto;padding:12px 14px;-webkit-overflow-scrolling:touch}
+.sec-lbl{font-size:9px;font-weight:500;letter-spacing:.1em;color:#555;text-transform:uppercase;margin:0 0 6px}
+.ecard{background:#1c1f24;border:0.5px solid #2a2a2a;border-radius:6px;padding:9px 11px;margin-bottom:7px}
+.ecard-title{font-size:12px;font-weight:500;color:#c8c8c8;margin-bottom:3px}
+.ecard-desc{font-size:11px;color:#555;line-height:1.5}
+.etag{display:inline-block;font-size:9px;padding:2px 6px;border-radius:3px;margin-top:5px;font-weight:500;letter-spacing:.04em}
+.t-exec{background:#1a2a1a;color:#5a9a5a}
+.t-leg{background:#1a1a2e;color:#5a6ec8}
+.t-court{background:#261a2e;color:#9a6ac8}
+.t-fp{background:#2e221a;color:#c8925a}
+.sec-block{margin-bottom:14px}
+#pf{padding:10px 14px;border-top:0.5px solid #2a2a2a;font-size:10px;color:#3a3a3a;font-style:italic;flex-shrink:0}
+#loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#181a1d;z-index:5}
+#loading-text{font-size:12px;color:#444;letter-spacing:.05em}
+#retry-btn{display:none;background:#1c1f24;border:0.5px solid #444;color:#888;padding:7px 14px;border-radius:6px;font-size:11px;cursor:pointer}
+.hs{cursor:pointer}
+.hs .hs-ring{transition:r .15s}
+.hs .hs-dot{transition:r .15s,fill .15s}
+.hs:hover .hs-ring{r:14}
+.hs:hover .hs-dot{r:6}
+.hs.active .hs-ring{r:16;fill:rgba(255,255,255,0.1);stroke:rgba(255,255,255,0.5)}
+.hs.active .hs-dot{r:6.5;fill:#fff}
+</style>
+</head>
+<body>
+<div id="ops">
+  <div id="hdr">
+    <span id="hdr-title">Global political overview</span>
+    <div id="hdr-right"><span class="live-dot"></span><span id="live-lbl">4 active regions</span></div>
+  </div>
+  <div id="map-area">
+    <svg id="map-svg" viewBox="0 0 960 500" xmlns="http://www.w3.org/2000/svg">
+      <rect width="960" height="500" fill="#181a1d"/>
+    </svg>
+    <div id="loading">
+      <span id="loading-text">Loading map…</span>
+      <button id="retry-btn" onclick="loadMap()">Retry</button>
+    </div>
+    <div id="panel-wrap">
+      <div id="ph">
+        <span id="ph-name">—</span>
+        <button id="ph-close" onclick="closePanel()">&#x2715;</button>
+      </div>
+      <div id="pb"></div>
+      <div id="pf">Fill in events closer to your presentation date.</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js" crossorigin="anonymous"></script>
+<script>
+const PANEL_DATA={
+  usa:{name:"United States",sections:[
+    {label:"Executive",events:[
+      {title:"[Event title]",desc:"Presidential action, executive order, or policy decision.",tag:"t-exec",tl:"Executive"},
+      {title:"[Event title]",desc:"Second development — war powers, veto, cabinet decision.",tag:"t-exec",tl:"Executive"}
+    ]},
+    {label:"Congress",events:[
+      {title:"[Event title]",desc:"Key bill, vote, or congressional oversight action.",tag:"t-leg",tl:"Legislative"}
+    ]},
+    {label:"Supreme Court",events:[
+      {title:"[Event title]",desc:"Landmark ruling or pending case relevant to US politics.",tag:"t-court",tl:"Supreme Court"}
+    ]}
+  ]},
+  iran:{name:"Iran",sections:[
+    {label:"US–Iran relations",events:[
+      {title:"[Event title]",desc:"Key diplomatic or military development between US and Iran.",tag:"t-fp",tl:"Foreign policy"},
+      {title:"[Event title]",desc:"Sanctions, nuclear talks, or presidential response.",tag:"t-exec",tl:"Executive"}
+    ]},
+    {label:"Congressional angle",events:[
+      {title:"[Event title]",desc:"Congressional response — authorisation debates, War Powers Resolution.",tag:"t-leg",tl:"Legislative"}
+    ]}
+  ]},
+  israel:{name:"Israel",sections:[
+    {label:"US foreign policy",events:[
+      {title:"[Event title]",desc:"US policy position — aid packages, UN veto use, diplomatic stance.",tag:"t-fp",tl:"Foreign policy"},
+      {title:"[Event title]",desc:"Presidential statements, troop posture, arms supply.",tag:"t-exec",tl:"Executive"}
+    ]},
+    {label:"Domestic politics link",events:[
+      {title:"[Event title]",desc:"Domestic debate — party splits, protest movements, election impact.",tag:"t-leg",tl:"Legislative"}
+    ]}
+  ]},
+  china:{name:"China",sections:[
+    {label:"Trade and tariffs",events:[
+      {title:"[Event title]",desc:"Latest tariff action or trade policy — executive orders, retaliatory measures.",tag:"t-exec",tl:"Executive"},
+      {title:"[Event title]",desc:"WTO challenges, supply chain shifts, tech restrictions.",tag:"t-fp",tl:"Foreign policy"}
+    ]},
+    {label:"Taiwan and security",events:[
+      {title:"[Event title]",desc:"Taiwan Strait developments — military posture, arms sales, Taiwan legislation.",tag:"t-leg",tl:"Legislative"}
+    ]},
+    {label:"Congress and courts",events:[
+      {title:"[Event title]",desc:"Congressional legislation or court ruling tied to US–China relations.",tag:"t-court",tl:"Supreme Court"}
+    ]}
+  ]}
+};
+
+const HOTSPOTS=[
+  {id:"usa",   lon:-98,  lat:38,   label:"USA",   labelDy:-15},
+  {id:"iran",  lon:53,   lat:32,   label:"Iran",  labelDy:-15},
+  {id:"israel",lon:35,   lat:31.5, label:"Israel",labelDy:23},
+  {id:"china", lon:104,  lat:35,   label:"China", labelDy:-15}
+];
+const HIGHLIGHT={"840":true,"364":true,"376":true,"156":true};
+let activeKey=null;
+
+function togglePanel(key){activeKey===key?closePanel():openPanel(key);}
+function openPanel(key){
+  const d=PANEL_DATA[key];
+  document.getElementById("ph-name").textContent=d.name;
+  let html="";
+  d.sections.forEach(s=>{
+    html+=`<div class="sec-block"><div class="sec-lbl">${s.label}</div>`;
+    s.events.forEach(e=>{
+      html+=`<div class="ecard"><div class="ecard-title">${e.title}</div><div class="ecard-desc">${e.desc}</div><span class="etag ${e.tag}">${e.tl}</span></div>`;
+    });
+    html+=`</div>`;
+  });
+  document.getElementById("pb").innerHTML=html;
+  document.getElementById("panel-wrap").classList.add("open");
+  document.querySelectorAll(".hs").forEach(h=>h.classList.remove("active"));
+  document.getElementById("hs-"+key).classList.add("active");
+  activeKey=key;
+}
+function closePanel(){
+  document.getElementById("panel-wrap").classList.remove("open");
+  document.querySelectorAll(".hs").forEach(h=>h.classList.remove("active"));
+  activeKey=null;
+}
+
+function drawMap(){
+  const W=960,H=500;
+  const proj=d3.geoNaturalEarth1().scale(153).translate([W/2,H/2]);
+  const pathGen=d3.geoPath(proj);
+  const svg=d3.select("#map-svg");
+
+  d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json").then(world=>{
+    const countries=topojson.feature(world,world.objects.countries);
+    const g=svg.append("g");
+    for(let x=0;x<=W;x+=40) g.append("line").attr("x1",x).attr("y1",0).attr("x2",x).attr("y2",H).attr("stroke","#1e2126").attr("stroke-width","0.5");
+    for(let y=0;y<=H;y+=40) g.append("line").attr("x1",0).attr("y1",y).attr("x2",W).attr("y2",y).attr("stroke","#1e2126").attr("stroke-width","0.5");
+    svg.append("g").selectAll("path").data(countries.features).join("path")
+      .attr("d",pathGen).attr("fill",d=>HIGHLIGHT[d.id]?"#283428":"#21242a")
+      .attr("stroke","#2c2f35").attr("stroke-width","0.4");
+    svg.append("path")
+      .datum(topojson.mesh(world,world.objects.countries,(a,b)=>a!==b))
+      .attr("fill","none").attr("stroke","#1c1f24").attr("stroke-width","0.3").attr("d",pathGen);
+    HOTSPOTS.forEach(h=>{
+      const [cx,cy]=proj([h.lon,h.lat]);
+      const gg=svg.append("g").attr("class","hs").attr("id","hs-"+h.id)
+        .attr("transform",`translate(${cx},${cy})`).on("click",()=>togglePanel(h.id));
+      gg.append("circle").attr("class","hs-ring").attr("r",11)
+        .attr("fill","rgba(255,255,255,0.06)").attr("stroke","rgba(255,255,255,0.3)").attr("stroke-width","0.8");
+      gg.append("circle").attr("class","hs-dot").attr("r",4.5).attr("fill","#8a9aaa");
+      gg.append("text").attr("text-anchor","middle").attr("y",h.labelDy)
+        .attr("font-size","10").attr("fill","#ffffff").attr("font-family","sans-serif")
+        .attr("letter-spacing","0.08em").attr("pointer-events","none").text(h.label);
+    });
+    svg.append("text").attr("x",W/2).attr("y",H-8)
+      .attr("text-anchor","middle").attr("font-size","9").attr("fill","#28282e")
+      .attr("font-family","sans-serif").text("Click a region to open briefing panel · click again to close");
+    document.getElementById("loading").style.display="none";
+  }).catch(()=>{
+    document.getElementById("loading-text").textContent="Map failed to load — check internet and retry.";
+    document.getElementById("retry-btn").style.display="block";
+  });
+}
+
+// Wait for D3 and TopoJSON to load then draw
+window.addEventListener("load", ()=>{
+  if(window.d3 && window.topojson){
+    drawMap();
+  } else {
+    document.getElementById("loading-text").textContent="Map failed to load — check internet and retry.";
+    document.getElementById("retry-btn").style.display="block";
+  }
+});
+</script>
+</body>
+</html>
